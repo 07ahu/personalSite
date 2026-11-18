@@ -47,6 +47,8 @@
   .title text{font-family:'Archivo',sans-serif;font-weight:900;font-stretch:88%;fill:var(--ink)}
   .sub{display:flex;justify-content:space-between;gap:calc(24*var(--u));margin-top:clamp(calc(6*var(--u)),0.8vw,calc(12*var(--u)));color:var(--ink);font-size:clamp(calc(12*var(--u)),1vw,calc(15*var(--u)));line-height:1.4}
   .sub p{margin:0;max-width:22em}
+  .sub .mbr{display:none}
+  @media (max-width:760px){ .sub .mbr{display:inline} }
   .sub p:last-child{font-weight:700;text-align:right}
   .hero-spacer{flex:1;min-height:calc(320*var(--u));touch-action:pan-y}
 
@@ -829,8 +831,8 @@
 
   @media (max-width:760px){
     .sub{flex-direction:column;gap:calc(4*var(--u));margin-top:calc(14*var(--u));transition:transform .45s cubic-bezier(.2,.8,.2,1)}
-    .sub p:first-child{align-self:flex-start;padding-left:calc(4*var(--u));max-width:10.5em;text-align:left}
-    .sub p:last-child{align-self:flex-end;padding-right:calc(4*var(--u));max-width:10.5em;text-align:right!important}
+    .sub p:first-child{align-self:flex-start;padding-left:calc(4*var(--u));text-align:left}
+    .sub p:last-child{align-self:flex-end;padding-right:calc(4*var(--u));text-align:right!important}
     .hero.tap .sub{transform:translateY(calc(58*var(--u)))}
     .nameout{top:calc(6*var(--u));width:52vw}
     .sub p:last-child{text-align:left}
@@ -870,8 +872,8 @@ addEventListener('load',hide);setTimeout(hide,5000);})();</script>
   </div>
   <div class="monkey" aria-hidden="true"><img src="sk/monkey.gif?v=3" alt=""></div>
   <div class="sub">
-    <p>designing with creativity + empathy</p>
-    <p>sophomore @ duke studying cs, math</p>
+    <p>designing with<br class="mbr"> creativity + empathy</p>
+    <p>sophomore @ duke<br class="mbr"> studying cs, math</p>
   </div>
   <div class="hero-spacer" aria-hidden="true"></div>
   <div class="bar">
