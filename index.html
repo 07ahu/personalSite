@@ -82,17 +82,11 @@
   .hero > .monkey img{display:block;width:100%;height:auto}
   .namewrap:hover ~ .monkey{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
   @media (prefers-reduced-motion:reduce){.hero > .monkey{transition:opacity .2s ease}}
-  /* flipped: hand-drawn name + monkey by default, plain ALAYNA HU on hover */
-  .namewrap .title{opacity:0}
-  .namewrap:hover .title{opacity:1}
-  .nameout{opacity:1;transform:translateX(-50%) scale(1)}
-  .namewrap:hover .nameout{opacity:0;transform:translateX(-50%) scale(.9)}
-  .hero > .monkey{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
-  .namewrap:hover ~ .monkey{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-6deg)}
-  .hero > .monkey{pointer-events:auto;cursor:default}
-  .hero > .monkey:hover{opacity:0}
-  .hero:has(> .monkey:hover) .namewrap .title{opacity:1}
-  .hero:has(> .monkey:hover) .nameout{opacity:0;transform:translateX(-50%) scale(.9)}
+  /* touch: tap the name to swap to the hand-drawn name + spinning monkey (tap again to swap back) */
+  .hero.tap .namewrap .title{opacity:0}
+  .hero.tap .nameout{opacity:1;transform:translateX(-50%) scale(1)}
+  .hero.tap > .monkey{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+  @media (hover:none){ .namewrap,.hero{cursor:pointer;-webkit-tap-highlight-color:transparent} }
 
   /* ---------- Page 2 (slides over the cover) ---------- */
   .page2{position:relative;z-index:2;height:400vh;height:400svh;background:#EDEDED;color:var(--ink);
@@ -452,6 +446,26 @@
   .glb figcaption{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:calc(13*var(--u));color:var(--ink);display:flex;align-items:center;gap:.6em}
   .gdot{width:.55em;height:.55em;border-radius:50%;background:var(--accent);display:inline-block;flex:none}
   @media (max-width:760px){ .gd-hint2{display:none} .gd-title{top:calc(52*var(--u))} }
+  /* phone: the drag canvas becomes a scrollable 2-column grid; tap a stack to flip through it */
+  @media (max-width:760px){
+    .gd-canvas{overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+    .gd-canvas .gd-stage{position:static;transform:none!important;width:auto!important;height:auto!important;
+      display:grid;grid-template-columns:1fr 1fr;gap:calc(34*var(--u)) calc(18*var(--u));align-items:end;padding:calc(112*var(--u)) calc(22*var(--u)) calc(56*var(--u))}
+    .gd-canvas .gstack{position:relative!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important;
+      touch-action:manipulation;transform:rotate(var(--r));cursor:pointer}
+    .gd-canvas .gstack .gp:first-child{position:relative}
+    .gd-canvas .gstack .gp:nth-child(n+3){display:none}
+    .gd-canvas .gstack.open{transform:rotate(var(--r))}
+    .gd-canvas .gstack::after{content:attr(data-sub);display:block;position:absolute;left:0;right:0;top:100%;margin-top:calc(10*var(--u));
+      font-family:'Geist Mono',ui-monospace,monospace;font-size:calc(10.5*var(--u));line-height:1.3;color:#6b6b6b;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .gd-canvas .gstack[data-n="1"]::after,.gd-canvas .gstack::after{transform:rotate(calc(-1*var(--r)))}
+    .gd-canvas .gs-cutout{grid-column:span 2;width:62%!important;justify-self:center}
+    .gd-reset{display:none}
+    .gd-canvas .gd-title{position:fixed;background:rgba(237,237,237,.92);padding:calc(6*var(--u)) calc(10*var(--u));border-radius:calc(999*var(--u))}
+    .glb img{max-width:92vw;max-height:72vh}
+    .glb-nav{font-size:calc(44*var(--u));padding:calc(14*var(--u)) calc(10*var(--u));color:#6b6b6b} .glb-prev{left:0} .glb-next{right:0}
+    .glb figcaption{font-size:calc(11*var(--u));max-width:86vw;text-align:center;flex-wrap:wrap;justify-content:center}
+  }
   @media (prefers-reduced-motion:reduce){.gstack,.gp{transition:none!important}}
 
 
@@ -814,10 +828,8 @@
   }
 
   @media (max-width:760px){
-    .namewrap{position:relative}
-    .namewrap .title{position:absolute;inset:0 0 auto 0}
-    .nameout,.namewrap:hover .nameout{position:relative;left:auto;top:auto;display:block;width:min(72vw,calc(400*var(--u)));margin:calc(14*var(--u)) auto 0;transform:none}
-    .sub{flex-direction:column;gap:calc(6*var(--u));margin-top:calc(14*var(--u))}
+    .sub{flex-direction:column;gap:calc(6*var(--u));margin-top:calc(96*var(--u))}
+    .nameout{top:calc(6*var(--u));width:52vw}
     .sub p:last-child{text-align:left}
     .bar{grid-template-columns:1fr 1fr;row-gap:0}
     .bar .gap{display:none}
@@ -1547,9 +1559,10 @@ addEventListener('load',hide);setTimeout(hide,5000);})();</script>
     var st=view.querySelector('.gd-stage'), SW=st.offsetWidth||1661, SH=st.offsetHeight||1029;
     var stacks=[].slice.call(view.querySelectorAll('.gstack'));
     var lb=view.querySelector('.glb'), lbImg=lb.querySelector('img'), lbCap=lb.querySelector('.gcap');
-    var z=50, sc=1, base=1, zm=1, tx=0, ty=0;
-    function apply(){ sc=base*zm; st.style.transform='translate(-50%,-50%) translate('+tx+'px,'+ty+'px) scale('+sc+')'; }
-    function fit(){ if(view.hidden) return; base=Math.min((innerWidth-40)/SW,(innerHeight-120)/SH,1.3); apply(); }
+    var z=50, sc=1, base=1, zm=1, tx=0, ty=0, mq=matchMedia('(max-width:760px)');
+    function mob(){ return mq.matches; }
+    function apply(){ if(mob()){ st.style.transform=''; sc=1; return; } sc=base*zm; st.style.transform='translate(-50%,-50%) translate('+tx+'px,'+ty+'px) scale('+sc+')'; }
+    function fit(){ if(view.hidden) return; if(!mob()){ SW=st.offsetWidth||SW; SH=st.offsetHeight||SH; } base=Math.min((innerWidth-40)/SW,(innerHeight-120)/SH,1.3); apply(); }
     addEventListener('resize',fit);
     stacks.forEach(function(s){ s._o=[s.style.left,s.style.top,s.style.zIndex]; });
     function fan(s){
@@ -1586,7 +1599,7 @@ addEventListener('load',hide);setTimeout(hide,5000);})();</script>
     function closeLb(){ if(!lb.hidden){ lb.hidden=true; } }
     // pan the canvas by dragging empty space
     view.addEventListener('pointerdown',function(e){
-      if(e.button>0||e.target.closest('.gstack,.gd-reset,.glb,.cs-back')) return;
+      if(mob()||e.button>0||e.target.closest('.gstack,.gd-reset,.glb,.cs-back')) return;
       var sx=e.clientX, sy=e.clientY, ox=tx, oy=ty;
       function mv(ev){ tx=ox+ev.clientX-sx; ty=oy+ev.clientY-sy; apply(); }
       function up(){ removeEventListener('pointermove',mv); removeEventListener('pointerup',up); removeEventListener('pointercancel',up); }
@@ -1594,7 +1607,7 @@ addEventListener('load',hide);setTimeout(hide,5000);})();</script>
     });
     // wheel / trackpad pans, pinch or ctrl+wheel zooms toward the cursor
     view.addEventListener('wheel',function(e){
-      if(!lb.hidden) return; e.preventDefault();
+      if(!lb.hidden||mob()) return; e.preventDefault();
       if(e.ctrlKey){ var z2=Math.max(.4,Math.min(3,zm*Math.exp(-e.deltaY*.01))), k=z2/zm, px=e.clientX-innerWidth/2, py=e.clientY-innerHeight/2;
         tx=px-(px-tx)*k; ty=py-(py-ty)*k; zm=z2; }
       else { tx-=e.deltaX; ty-=e.deltaY; }
@@ -1604,7 +1617,7 @@ addEventListener('load',hide);setTimeout(hide,5000);})();</script>
       s.addEventListener('pointerenter',function(e){ if(e.pointerType==='mouse') fan(s); });
       s.addEventListener('pointerleave',function(e){ if(e.pointerType==='mouse'&&!s._drag) close(s); });
       s.addEventListener('pointerdown',function(e){
-        if(e.button>0) return; e.preventDefault();
+        if(e.button>0||mob()) return; e.preventDefault();
         var sx=e.clientX, sy=e.clientY, ox=s.offsetLeft, oy=s.offsetTop, moved=false, t=e.pointerType;
         s.setPointerCapture(e.pointerId); s.style.zIndex=++z; s._drag=true;
         function mv(ev){ if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>4) moved=true; s.style.left=(ox+(ev.clientX-sx)/sc)+'px'; s.style.top=(oy+(ev.clientY-sy)/sc)+'px'; }
@@ -1613,12 +1626,18 @@ addEventListener('load',hide);setTimeout(hide,5000);})();</script>
           else if(!moved){ s.classList.contains('open') ? close(s) : (stacks.forEach(close), fan(s)); } }
         s.addEventListener('pointermove',mv); s.addEventListener('pointerup',up); s.addEventListener('pointercancel',up);
       });
+      s.addEventListener('click',function(){ if(mob()) openLb(s); });
       s.addEventListener('dblclick',function(e){ openLb(s, e.target.tagName==='IMG'?e.target:null); });
       s.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openLb(s); } });
-      s.addEventListener('focus',function(){ fan(s); }); s.addEventListener('blur',function(){ close(s); });
+      s.addEventListener('focus',function(){ if(!mob()) fan(s); }); s.addEventListener('blur',function(){ close(s); });
     });
     view.addEventListener('pointerdown',function(e){ if(e.pointerType!=='mouse'&&!e.target.closest('.gstack')) stacks.forEach(close); });
-    lb.addEventListener('click',closeLb);
+    mq.addEventListener&&mq.addEventListener('change',function(){ stacks.forEach(close); apply(); fit(); });
+    // swipe left/right in the enlarged view on phones
+    (function(){ var x0=null,y0=0; lb.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; y0=e.touches[0].clientY; },{passive:true});
+      lb.addEventListener('touchend',function(e){ if(x0===null||lbImgs.length<2) return; var dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
+        if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){ e.preventDefault(); lb._sw=Date.now(); showLb(lbI+(dx<0?1:-1),dx<0?1:-1); } }); })();
+    lb.addEventListener('click',function(){ if(lb._sw&&Date.now()-lb._sw<400) return; closeLb(); });
     document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!lb.hidden){ e.stopImmediatePropagation(); closeLb(); } },true);
     view.querySelector('.gd-reset').addEventListener('click',function(){ tx=ty=0; zm=1; apply(); stacks.forEach(function(s){ s.style.left=s._o[0]; s.style.top=s._o[1]; s.style.zIndex=s._o[2]; close(s); }); });
     view._open=function(){ fit(); };
@@ -2216,6 +2235,12 @@ addEventListener('load',hide);setTimeout(hide,5000);})();</script>
 })();
 </script>
 
+<script>
+(function(){
+  var h=document.querySelector('.hero'); if(!h||!matchMedia('(hover:none)').matches) return;
+  h.addEventListener('click',function(e){ if(e.target.closest('a,button')) return; h.classList.toggle('tap'); });
+})();
+</script>
 <script>
 (function(){
   if(/firefox/i.test(navigator.userAgent))return; /* Firefox animates the GIF itself */
